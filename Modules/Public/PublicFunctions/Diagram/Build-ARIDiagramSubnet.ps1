@@ -1440,11 +1440,10 @@ Function Build-ARIDiagramSubnet {
                 }
             } # This is the end of the Set-ARIDiagramSubnetComponent function
 
-        ######################################################### ICON #######################################################
-
         Function New-ARIDiagramSubnetIcon {    
             Param($Style,$x,$y,$w,$h,$p)
             
+            try {
                 $XmlTempWriter.WriteStartElement('mxCell')
                 $XmlTempWriter.WriteAttributeString('style', $Style)
                 $XmlTempWriter.WriteAttributeString('vertex', "1")
@@ -1460,6 +1459,10 @@ Function Build-ARIDiagramSubnet {
                 
                 $XmlTempWriter.WriteEndElement()
             }
+            catch {
+                ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $LogFile -Append 
+            }
+        }
 
         ######################################################## SUBNET #######################################################
 
@@ -1592,9 +1595,6 @@ Function Build-ARIDiagramSubnet {
             $XmlTempWriter.Close() 
     }
     catch {
-        ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $LogFile -Append 
-    }
-    finally {
-        # Add any necessary cleanup code here
+        Write-Error "Error in Build-ARIDiagramSubnet: $_"
     }
 }

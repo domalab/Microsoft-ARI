@@ -122,7 +122,14 @@ function Connect-ARILoginSession {
                 Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Logging with AppID and Secret')
                 $SecurePassword = ConvertTo-SecureString -String $Secret -AsPlainText -Force
                 $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $AppId, $SecurePassword
-                Connect-AzAccount -ServicePrincipal -TenantId $TenantId -Credential $Credential | Out-Null
+                try {
+                    Connect-AzAccount -ServicePrincipal -TenantId $TenantId -Credential $Credential -Environment $AzureEnvironment | Out-Null
+                }
+                catch {
+                    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Error connecting with Service Principal: ' + $_.Exception.Message)
+                    Write-Host "Error connecting with Service Principal. Trying alternative authentication method..." -ForegroundColor Yellow
+                    Connect-AzAccount -Tenant $TenantID -Environment $AzureEnvironment | Out-Null
+                }
             }
         else
             {
@@ -135,17 +142,35 @@ function Connect-ARILoginSession {
                                 if ($AZConfig.value -eq 'On')
                                     {
                                         Update-AzConfig -LoginExperienceV2 Off | Out-Null
-                                        Connect-AzAccount -Tenant $TenantID -Environment $AzureEnvironment | Out-Null
+                                        try {
+                                            # First try with browser interactive login
+                                            Connect-AzAccount -Tenant $TenantID -Environment $AzureEnvironment | Out-Null
+                                        }
+                                        catch {
+                                            # If browser login fails, try device code flow
+                                            Write-Host "Browser authentication failed, trying device code authentication..." -ForegroundColor Yellow
+                                            Connect-AzAccount -Tenant $TenantID -UseDeviceAuthentication -Environment $AzureEnvironment | Out-Null
+                                        }
                                         Update-AzConfig -LoginExperienceV2 On | Out-Null
                                     }
                                 else
                                     {
-                                        Connect-AzAccount -Tenant $TenantID -Environment $AzureEnvironment | Out-Null
+                                        try {
+                                            # First try with browser interactive login
+                                            Connect-AzAccount -Tenant $TenantID -Environment $AzureEnvironment | Out-Null
+                                        }
+                                        catch {
+                                            # If browser login fails, try device code flow
+                                            Write-Host "Browser authentication failed, trying device code authentication..." -ForegroundColor Yellow
+                                            Connect-AzAccount -Tenant $TenantID -UseDeviceAuthentication -Environment $AzureEnvironment | Out-Null
+                                        }
                                     }
                             }
                         catch
                             {
-                                Connect-AzAccount -Tenant $TenantID -Environment $AzureEnvironment | Out-Null
+                                Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Error in authentication: ' + $_.Exception.Message)
+                                Write-Host "Trying device code authentication as fallback..." -ForegroundColor Yellow
+                                Connect-AzAccount -Tenant $TenantID -UseDeviceAuthentication -Environment $AzureEnvironment | Out-Null
                             }
                     }
                 else

@@ -816,15 +816,10 @@ Function Start-ARIDiagramNetwork {
                             if($VNET2.properties.virtualNetworkPeerings.properties.remoteVirtualNetwork.id)
                                 {
                                     New-ARIDiagramPeerVNET $Script:VNET2
-                                }
-
-                                $tmp =@{
-                                    'VNETid' = $Script:VNETDrawID;
-                                    'VNET' = $AZVNETs2.id
-                                }    
-                                $Script:VNETHistory += $tmp 
-                                            
+                                }  
                         }
+
+                        $Script:Alt = $Script:Alt + 250
                     }
 
                     $Script:XmlWriter.WriteStartElement('object')            
@@ -882,7 +877,7 @@ Function Start-ARIDiagramNetwork {
                                 ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding VNET ($LogResName): " + $Script:CellID+'-'+($Script:IDNum)) | Out-File -FilePath $LogFile -Append
                                 New-ARIDiagramIcon $IconVNET 600 $Script:Alt "65" "39" 1
 
-                            $Script:XmlWriter.WriteEndElement()
+                            $Script:XmlWriter.WriteEndElement()      
 
                             New-ARIDiagramVNET $Script:VNET2
 
@@ -1655,10 +1650,4 @@ Function Start-ARIDiagramNetwork {
             {
                 ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $LogFile -Append 
             }
-}
-            }
-            catch 
-            {
-                ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $LogFile -Append 
-            }
-}
+} # End of Start-ARIDiagramNetwork function

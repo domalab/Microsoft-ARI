@@ -153,7 +153,7 @@ function Build-ARIExcelChart {
                 $Excel.Dispose()
             }
 
-            $Style = New-ExcelStyle -HorizontalAlignment Center -AutoSize -NumberFormat 0
+            $Style = New-ARIExcelStyle -HorizontalAlignment Center -AutoSize -NumberFormat 0
 
             $Table |
             ForEach-Object { [PSCustomObject]$_ } | Sort-Object -Property 'Size2' -Descending |

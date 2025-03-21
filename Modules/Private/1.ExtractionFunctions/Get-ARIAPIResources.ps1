@@ -28,15 +28,30 @@ function Get-ARIAPIResources {
     $ResourceHealthHistoryDate = (Get-Date).AddMonths(-6)
     $APIResults = @()
 
+    $ModRunAdvisorScore = $null
+    $ModJobAdvisorScore = $null
+    $ModSecAdvisorScore = $null
+    $ModCostAdvisorScore = $null
+    $ModOpsAdvisorScore = $null
+    $ModHighAdvisorScore = $null
+    $ModMediumAdvisorScore = $null
+    $ModLowAdvisorScore = $null
+    $ModReservationRecomen = $null
+    $ModResourceHealth = $null
+    $ModManagedIdentities = $null
+    $ModPolicyAssign = $null
+    $ModPolicyDef = $null
+    $ModPolicyS = $null
+
     foreach ($Subscription in $Subscriptions)
         {
-            $ResourceHealth = ""
-            $Identities = ""
-            $ADVScore = ""
-            $ReservationRecon = ""
-            $PolicyAssign = ""
-            $PolicySetDef = ""
-            $PolicyDef = ""
+            $ResourceHealth = $null
+            $Identities = $null
+            $ADVScore = $null
+            $ReservationRecon = $null
+            $PolicyAssign = $null
+            $PolicySetDef = $null
+            $PolicyDef = $null
 
             $SubName = $Subscription.Name
             $Sub = $Subscription.id
@@ -50,7 +65,7 @@ function Get-ARIAPIResources {
                 $ResourceHealth = Invoke-RestMethod -Uri $url -Headers $header -Method GET
             }
             catch {
-                $ResourceHealth = ""
+                $ResourceHealth = $null
             }
             
             Start-Sleep -Milliseconds 200
@@ -61,7 +76,7 @@ function Get-ARIAPIResources {
                 $Identities = Invoke-RestMethod -Uri $url -Headers $header -Method GET
             }
             catch {
-                $Identities = ""
+                $Identities = $null
             }
             Start-Sleep -Milliseconds 200
 
@@ -71,7 +86,7 @@ function Get-ARIAPIResources {
                 $ADVScore = Invoke-RestMethod -Uri $url -Headers $header -Method GET
             }
             catch {
-                $ADVScore = ""
+                $ADVScore = $null
             }
             Start-Sleep -Milliseconds 200
 
@@ -81,7 +96,7 @@ function Get-ARIAPIResources {
                 $ReservationRecon = Invoke-RestMethod -Uri $url -Headers $header -Method GET
             }
             catch {
-                $ReservationRecon = ""
+                $ReservationRecon = $null
             }
             Start-Sleep -Milliseconds 200
 
@@ -99,9 +114,9 @@ function Get-ARIAPIResources {
                         $PolicyDef = (Invoke-RestMethod -Uri $url -Headers $header -Method GET).value
                     }
                     catch {
-                        $PolicyAssign = ""
-                        $PolicySetDef = ""
-                        $PolicyDef = ""
+                        $PolicyAssign = $null
+                        $PolicySetDef = $null
+                        $PolicyDef = $null
                     }
                 }
 
@@ -111,7 +126,7 @@ function Get-ARIAPIResources {
                 $DiagSet = Invoke-RestMethod -Uri $url -Headers $header -Method GET
             }
             catch {
-                $DiagSet = ""
+                $DiagSet = $null
             }
             
             Start-Sleep -Milliseconds 200
@@ -122,7 +137,7 @@ function Get-ARIAPIResources {
                 $Outages = Invoke-RestMethod -Uri $url -Headers $header -Method GET
             }
             catch {
-                $Outages = ""
+                $Outages = $null
             }
             
             Start-Sleep -Milliseconds 200
@@ -133,7 +148,7 @@ function Get-ARIAPIResources {
                 $SupportTickets = Invoke-RestMethod -Uri $url -Headers $header -Method GET
             }
             catch {
-                $SupportTickets = ""
+                $SupportTickets = $null
             }
             
             Start-Sleep -Milliseconds 200

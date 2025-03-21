@@ -33,7 +33,7 @@ function Test-ScriptSyntax {
     $ast = [System.Management.Automation.Language.Parser]::ParseFile($FilePath, [ref]$null, [ref]$errors)
     
     if ($errors) {
-        Write-Host "Syntax errors found in $FilePath:" -ForegroundColor Red
+        Write-Host "Syntax errors found in $FilePath" -ForegroundColor Red
         foreach ($error in $errors) {
             Write-Host "  Line $($error.Extent.StartLineNumber): $($error.Message)" -ForegroundColor Red
         }
@@ -56,7 +56,7 @@ foreach ($file in $filesToCheck) {
     if (-not (Test-ScriptSyntax -FilePath $file)) {
         $allFilesValid = $false
     } else {
-        Write-Host "  ✓ Syntax looks good" -ForegroundColor Green
+        Write-Host "  Syntax looks good" -ForegroundColor Green
     }
 }
 
