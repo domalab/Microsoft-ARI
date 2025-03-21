@@ -78,6 +78,14 @@ Function Build-ARIDiagramSubnet {
             $Script:Signature = "aspect=fixed;html=1;points=[];align=left;image;fontSize=22;image=img/lib/azure2/general/Dev_Console.svg;" #width="27.5" height="22"
             $Script:CloudOnly = "aspect=fixed;html=1;points=[];align=center;image;fontSize=56;image=img/lib/azure2/compute/Cloud_Services_Classic.svg;" #width="380.77" height="275"
         
+            # Add modern networking components
+            $Script:IconFrontDoor = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/networking/Front_Doors.svg;" # width="65" height="52"
+            $Script:IconCDN = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/networking/CDN_Profiles.svg;" # width="65" height="52"
+            $Script:IconPrivateDNS = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/networking/Private_DNS_Zones.svg;" # width="65" height="52"
+            $Script:IconDNSZone = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/networking/DNS_Zones.svg;" # width="64" height="64"
+            $Script:IconNetworkWatcher = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/networking/Network_Watcher.svg;" # width="65" height="65"
+            $Script:IconManagedIdentity = "aspect=fixed;html=1;points=[];align=center;image;fontSize=14;image=img/lib/azure2/identity/Managed_Identities.svg;" # width="68" height="66"
+        
         }
 
         ####################################################### Subnet Components ####################################################
@@ -92,7 +100,7 @@ Function Build-ARIDiagramSubnet {
 
                 <####################################################### FIND THE RESOURCES IN THE SUBNET ###################################################################>
 
-                $LoggingSubName = $Sub.id
+                $LoggingSubName = $sub.id
                 ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Validating ProcType: " + $LoggingSubName) | Out-File -FilePath $LogFile -Append
                 if($sub.properties.resourceNavigationLinks.properties.linkedResourceType -eq 'Microsoft.ApiManagement/service')
                     {
@@ -100,40 +108,46 @@ Function Build-ARIDiagramSubnet {
                     }
                 if($sub.properties.serviceAssociationLinks.properties.link -and $null -eq $TrueTemp)
                     {
-                        if($sub.properties.serviceAssociationLinks.properties.link.split("/")[6] -eq 'Microsoft.Web') 
+                        $Link = $sub.properties.serviceAssociationLinks.properties.link
+                        if($Link -like '*Microsoft.Web/serverFarms*')
                             {
                                 $TrueTemp = 'App Service'
                             }
-                    }
-                if($sub.properties.applicationGatewayIPConfigurations.id -and $null -eq $TrueTemp)
-                    {
-                        if($sub.properties.applicationGatewayIPConfigurations.id.split("/")[7] -eq 'applicationGateways')
+                        elseif($Link -like '*Microsoft.Databricks*')
                             {
-                                $TrueTemp = 'applicationGateways'
+                                $TrueTemp = 'DataBricks'
                             }
                     }
-                if($sub.properties.ipconfigurations.id.count -eq 1 -and $null -eq $TrueTemp)
-                    {                 
-                        if($sub.properties.ipconfigurations.id.Split("/")[7] -eq 'virtualNetworkGateways')
-                            {               
-                                $TrueTemp = 'virtualNetworkGateways'
-                            }
-                        elseif($sub.properties.ipconfigurations.id.Split("/")[7] -eq 'loadBalancers')
-                            {               
-                                $TrueTemp = 'loadBalancers'
-                            }
-                        elseif($sub.properties.ipconfigurations.id.Split("/")[7] -eq 'applicationGateways')
-                            {               
-                                $TrueTemp = 'applicationGateways'
-                            }
-                        elseif($sub.properties.ipconfigurations.id.Split("/")[7] -eq 'bastionHosts')
-                            {               
-                                $TrueTemp = 'bastionHosts'
-                            }
-                        elseif($sub.properties.ipconfigurations.id.Split("/")[7] -eq 'azureFirewalls')
-                            {               
-                                $TrueTemp = 'azureFirewalls'
-                            }                                                                               
+
+                # Add checks for modern networking components
+                if($sub.properties.serviceAssociationLinks.properties.link -like '*Microsoft.ManagedIdentity*' -and $null -eq $TrueTemp)
+                    {
+                        $TrueTemp = 'Managed Identity'
+                    }
+                if($sub.properties.serviceAssociationLinks.properties.link -like '*Microsoft.Network/frontdoors*' -and $null -eq $TrueTemp)
+                    {
+                        $TrueTemp = 'Front Door'
+                    }
+                if($sub.properties.serviceAssociationLinks.properties.link -like '*Microsoft.Network/privateDnsZones*' -and $null -eq $TrueTemp)
+                    {
+                        $TrueTemp = 'Private DNS Zone'
+                    }
+                if($sub.properties.serviceAssociationLinks.properties.link -like '*Microsoft.Network/networkWatchers*' -and $null -eq $TrueTemp)
+                    {
+                        $TrueTemp = 'Network Watcher'
+                    }
+                if($sub.properties.serviceAssociationLinks.properties.link -like '*Microsoft.Cdn/profiles*' -and $null -eq $TrueTemp)
+                    {
+                        $TrueTemp = 'CDN Profile'
+                    }
+                if($sub.properties.serviceAssociationLinks.properties.link -like '*Microsoft.Network/dnsZones*' -and $null -eq $TrueTemp)
+                    {
+                        $TrueTemp = 'DNS Zone'
+                    }
+
+                if($Sub.name -eq 'AzureBastionSubnet' -and $null -eq $TrueTemp)
+                    {
+                        $TrueTemp = 'Bastion Host'
                     }
                 if($sub.properties.delegations.properties.serviceName -eq 'Microsoft.Databricks/workspaces' -and $null -eq $TrueTemp)
                     {                                
@@ -398,7 +412,7 @@ Function Build-ARIDiagramSubnet {
 
                                                 }
                                             else 
-                                                {
+                                                {            
                                                     $XmlTempWriter.WriteStartElement('object')            
                                                     $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.name)                                        
 
@@ -430,7 +444,7 @@ Function Build-ARIDiagramSubnet {
                                                     }
                                             }
                         'virtualMachineScaleSets' {
-                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding VMSS: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append                                                                             
+                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding VMSS: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append             
                                             if($RESNames.count -gt 1)
                                                 {
                                                     $XmlTempWriter.WriteStartElement('object')            
@@ -469,7 +483,7 @@ Function Build-ARIDiagramSubnet {
                                                 }                                                                        
                                             } 
                         'loadBalancers' {
-                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Load Balancer: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append                                           
+                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Load Balancer: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append                                          
                                             if($RESNames.count -gt 1)
                                                 {
                                                     $XmlTempWriter.WriteStartElement('object')            
@@ -522,7 +536,7 @@ Function Build-ARIDiagramSubnet {
                                                 }
                                             } 
                         'virtualNetworkGateways' {
-                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding VPN Gateway: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append                                                 
+                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding VPN Gateway: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append                                                
                                             if($RESNames.count -gt 1)
                                                 {
                                                     $XmlTempWriter.WriteStartElement('object')            
@@ -557,7 +571,7 @@ Function Build-ARIDiagramSubnet {
                                                 }                                                                                                         
                                             } 
                         'azureFirewalls' {
-                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Azure Firewall: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append                                             
+                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Azure Firewall: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append                                            
                                             if($RESNames.count -gt 1)
                                                 {
                                                     $XmlTempWriter.WriteStartElement('object')            
@@ -600,7 +614,7 @@ Function Build-ARIDiagramSubnet {
                                                 }                                                                
                                             } 
                         'privateLinkServices' {
-                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding PrivateLink: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append                                                 
+                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding PrivateLink: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append                                                
                                             if($RESNames.count -gt 1)
                                                 {
                                                     $XmlTempWriter.WriteStartElement('object')            
@@ -632,9 +646,9 @@ Function Build-ARIDiagramSubnet {
 
                                                     $XmlTempWriter.WriteEndElement()
                                                 }                                                                       
-                                            } 
+                                            }
                         'applicationGateways' {
-                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding AppGateway: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append                                            
+                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding AppGateway: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append                                          
                                             if($RESNames.count -gt 1)
                                                 {
                                                     $XmlTempWriter.WriteStartElement('object')            
@@ -680,7 +694,7 @@ Function Build-ARIDiagramSubnet {
                                                 }                                                                                                                                                                             
                                             }
                         'bastionHosts' {
-                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding BastionHost: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append                                               
+                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding BastionHost: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append                                              
                                             if($RESNames.count -gt 1)
                                                 {
                                                     $XmlTempWriter.WriteStartElement('object')            
@@ -716,7 +730,8 @@ Function Build-ARIDiagramSubnet {
                         'APIM' {
                                             ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding APIM: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append
                                             $XmlTempWriter.WriteStartElement('object')            
-                                            $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)                                                            
+                                            $XmlTempWriter.WriteAttributeString('label', [string]$RESNames.Name)
+                                            $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
 
                                             $APIMHost = [string]($RESNames.properties.hostnameConfigurations | Where-Object {$_.defaultSslBinding -eq $true}).hostname
 
@@ -725,9 +740,7 @@ Function Build-ARIDiagramSubnet {
                                             $XmlTempWriter.WriteAttributeString('VNET_Type', [string]$RESNames.properties.virtualNetworkType)
                                             $XmlTempWriter.WriteAttributeString('Default_Hostname', $APIMHost)
 
-                                            $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-1'))
-
-                                                New-ARIDiagramSubnetIcon $IconAPIMs ($SubnetLocation+65) ($Alt0+40) "65" "60" $ContainerID
+                                                        New-ARIDiagramSubnetIcon $IconAPIMs ($SubnetLocation+65) ($Alt0+40) "65" "60" $ContainerID
 
                                             $XmlTempWriter.WriteEndElement()
 
@@ -1072,43 +1085,360 @@ Function Build-ARIDiagramSubnet {
 
                                                 }                                                                
                                             }                                                                                                                                                                            
-                        '' {('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Not Adding ProcType: " + 'Blank Resource Type Name') | Out-File -FilePath $LogFile -Append}
-                        default {('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Not Adding ProcType: $TrueTemp - " + 'Missing ResourceType in the list') | Out-File -FilePath $LogFile -Append}
+                        'Managed Identity' {
+                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Managed Identity: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append
+                                            if($RESNames.count -gt 1)
+                                                {
+                                                    $XmlTempWriter.WriteStartElement('object')            
+                                                    $XmlTempWriter.WriteAttributeString('label', ('Managed Identities:' + "`n`n`n`n`n" + 'Count: ' + $RESNames.count))
+                                                    $XmlTempWriter.WriteAttributeString('id', $CellID3+'-1')
+                                                        
+                                                        $XmlTempWriter.WriteStartElement('mxCell')
+                                                        $XmlTempWriter.WriteAttributeString('style', $IconManagedIdentity)
+                                                        $XmlTempWriter.WriteAttributeString('vertex', "1")
+                                                        $XmlTempWriter.WriteAttributeString('parent', "1")
+
+                                                            $XmlTempWriter.WriteStartElement('mxGeometry')
+                                                            $XmlTempWriter.WriteAttributeString('x', $SubnetLocation)
+                                                            $XmlTempWriter.WriteAttributeString('y', ($Alt0))
+                                                            $XmlTempWriter.WriteAttributeString('width', "68")
+                                                            $XmlTempWriter.WriteAttributeString('height', "66")
+                                                            $XmlTempWriter.WriteAttributeString('as', "geometry")
+                                                            $XmlTempWriter.WriteEndElement()
+
+                                                        $XmlTempWriter.WriteEndElement()
+                                                    
+                                                    $XmlTempWriter.WriteEndElement()                                           
+                                                }
+                                            else
+                                                {
+                                                    $XmlTempWriter.WriteStartElement('object')            
+                                                    $XmlTempWriter.WriteAttributeString('label', ('Managed Identity:' + "`n`n`n`n`n" + [string]$RESNames.name))
+                                                    $XmlTempWriter.WriteAttributeString('id', $CellID3+'-1')
+                                                        
+                                                        $XmlTempWriter.WriteStartElement('mxCell')
+                                                        $XmlTempWriter.WriteAttributeString('style', $IconManagedIdentity)
+                                                        $XmlTempWriter.WriteAttributeString('vertex', "1")
+                                                        $XmlTempWriter.WriteAttributeString('parent', "1")
+
+                                                            $XmlTempWriter.WriteStartElement('mxGeometry')
+                                                            $XmlTempWriter.WriteAttributeString('x', $SubnetLocation)
+                                                            $XmlTempWriter.WriteAttributeString('y', ($Alt0))
+                                                            $XmlTempWriter.WriteAttributeString('width', "68")
+                                                            $XmlTempWriter.WriteAttributeString('height', "66")
+                                                            $XmlTempWriter.WriteAttributeString('as', "geometry")
+                                                            $XmlTempWriter.WriteEndElement()
+
+                                                        $XmlTempWriter.WriteEndElement()
+                                                    
+                                                    $XmlTempWriter.WriteEndElement()                                             
+                                                }                                        
+                                        }
+                        'Front Door' {
+                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Front Door: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append
+                                            if($RESNames.count -gt 1)
+                                                {
+                                                    $XmlTempWriter.WriteStartElement('object')            
+                                                    $XmlTempWriter.WriteAttributeString('label', ('Front Doors:' + "`n`n`n`n`n" + 'Count: ' + $RESNames.count))
+                                                    $XmlTempWriter.WriteAttributeString('id', $CellID3+'-1')
+                                                        
+                                                        $XmlTempWriter.WriteStartElement('mxCell')
+                                                        $XmlTempWriter.WriteAttributeString('style', $IconFrontDoor)
+                                                        $XmlTempWriter.WriteAttributeString('vertex', "1")
+                                                        $XmlTempWriter.WriteAttributeString('parent', "1")
+
+                                                            $XmlTempWriter.WriteStartElement('mxGeometry')
+                                                            $XmlTempWriter.WriteAttributeString('x', $SubnetLocation)
+                                                            $XmlTempWriter.WriteAttributeString('y', ($Alt0))
+                                                            $XmlTempWriter.WriteAttributeString('width', "65")
+                                                            $XmlTempWriter.WriteAttributeString('height', "52")
+                                                            $XmlTempWriter.WriteAttributeString('as', "geometry")
+                                                            $XmlTempWriter.WriteEndElement()
+
+                                                        $XmlTempWriter.WriteEndElement()
+                                                    
+                                                    $XmlTempWriter.WriteEndElement()                                           
+                                                }
+                                            else
+                                                {
+                                                    $XmlTempWriter.WriteStartElement('object')            
+                                                    $XmlTempWriter.WriteAttributeString('label', ('Front Door:' + "`n`n`n`n`n" + [string]$RESNames.name))
+                                                    $XmlTempWriter.WriteAttributeString('id', $CellID3+'-1')
+                                                        
+                                                        $XmlTempWriter.WriteStartElement('mxCell')
+                                                        $XmlTempWriter.WriteAttributeString('style', $IconFrontDoor)
+                                                        $XmlTempWriter.WriteAttributeString('vertex', "1")
+                                                        $XmlTempWriter.WriteAttributeString('parent', "1")
+
+                                                            $XmlTempWriter.WriteStartElement('mxGeometry')
+                                                            $XmlTempWriter.WriteAttributeString('x', $SubnetLocation)
+                                                            $XmlTempWriter.WriteAttributeString('y', ($Alt0))
+                                                            $XmlTempWriter.WriteAttributeString('width', "65")
+                                                            $XmlTempWriter.WriteAttributeString('height', "52")
+                                                            $XmlTempWriter.WriteAttributeString('as', "geometry")
+                                                            $XmlTempWriter.WriteEndElement()
+
+                                                        $XmlTempWriter.WriteEndElement()
+                                                    
+                                                    $XmlTempWriter.WriteEndElement()                                             
+                                                }                                        
+                                        }
+                        'Private DNS Zone' {
+                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Private DNS Zone: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append
+                                            if($RESNames.count -gt 1)
+                                                {
+                                                    $XmlTempWriter.WriteStartElement('object')            
+                                                    $XmlTempWriter.WriteAttributeString('label', ('Private DNS Zones:' + "`n`n`n`n`n" + 'Count: ' + $RESNames.count))
+                                                    $XmlTempWriter.WriteAttributeString('id', $CellID3+'-1')
+                                                        
+                                                        $XmlTempWriter.WriteStartElement('mxCell')
+                                                        $XmlTempWriter.WriteAttributeString('style', $IconPrivateDNS)
+                                                        $XmlTempWriter.WriteAttributeString('vertex', "1")
+                                                        $XmlTempWriter.WriteAttributeString('parent', "1")
+
+                                                            $XmlTempWriter.WriteStartElement('mxGeometry')
+                                                            $XmlTempWriter.WriteAttributeString('x', $SubnetLocation)
+                                                            $XmlTempWriter.WriteAttributeString('y', ($Alt0))
+                                                            $XmlTempWriter.WriteAttributeString('width', "65")
+                                                            $XmlTempWriter.WriteAttributeString('height', "52")
+                                                            $XmlTempWriter.WriteAttributeString('as', "geometry")
+                                                            $XmlTempWriter.WriteEndElement()
+
+                                                        $XmlTempWriter.WriteEndElement()
+                                                    
+                                                    $XmlTempWriter.WriteEndElement()                                           
+                                                }
+                                            else
+                                                {
+                                                    $XmlTempWriter.WriteStartElement('object')            
+                                                    $XmlTempWriter.WriteAttributeString('label', ('Private DNS Zone:' + "`n`n`n`n`n" + [string]$RESNames.name))
+                                                    $XmlTempWriter.WriteAttributeString('id', $CellID3+'-1')
+                                                        
+                                                        $XmlTempWriter.WriteStartElement('mxCell')
+                                                        $XmlTempWriter.WriteAttributeString('style', $IconPrivateDNS)
+                                                        $XmlTempWriter.WriteAttributeString('vertex', "1")
+                                                        $XmlTempWriter.WriteAttributeString('parent', "1")
+
+                                                            $XmlTempWriter.WriteStartElement('mxGeometry')
+                                                            $XmlTempWriter.WriteAttributeString('x', $SubnetLocation)
+                                                            $XmlTempWriter.WriteAttributeString('y', ($Alt0))
+                                                            $XmlTempWriter.WriteAttributeString('width', "65")
+                                                            $XmlTempWriter.WriteAttributeString('height', "52")
+                                                            $XmlTempWriter.WriteAttributeString('as', "geometry")
+                                                            $XmlTempWriter.WriteEndElement()
+
+                                                        $XmlTempWriter.WriteEndElement()
+                                                    
+                                                    $XmlTempWriter.WriteEndElement()                                             
+                                                }                                        
+                                        }
+                        'Network Watcher' {
+                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding Network Watcher: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append
+                                            if($RESNames.count -gt 1)
+                                                {
+                                                    $XmlTempWriter.WriteStartElement('object')            
+                                                    $XmlTempWriter.WriteAttributeString('label', ('Network Watchers:' + "`n`n`n`n`n" + 'Count: ' + $RESNames.count))
+                                                    $XmlTempWriter.WriteAttributeString('id', $CellID3+'-1')
+                                                        
+                                                        $XmlTempWriter.WriteStartElement('mxCell')
+                                                        $XmlTempWriter.WriteAttributeString('style', $IconNetworkWatcher)
+                                                        $XmlTempWriter.WriteAttributeString('vertex', "1")
+                                                        $XmlTempWriter.WriteAttributeString('parent', "1")
+
+                                                            $XmlTempWriter.WriteStartElement('mxGeometry')
+                                                            $XmlTempWriter.WriteAttributeString('x', $SubnetLocation)
+                                                            $XmlTempWriter.WriteAttributeString('y', ($Alt0))
+                                                            $XmlTempWriter.WriteAttributeString('width', "65")
+                                                            $XmlTempWriter.WriteAttributeString('height', "65")
+                                                            $XmlTempWriter.WriteAttributeString('as', "geometry")
+                                                            $XmlTempWriter.WriteEndElement()
+
+                                                        $XmlTempWriter.WriteEndElement()
+                                                    
+                                                    $XmlTempWriter.WriteEndElement()                                           
+                                                }
+                                            else
+                                                {
+                                                    $XmlTempWriter.WriteStartElement('object')            
+                                                    $XmlTempWriter.WriteAttributeString('label', ('Network Watcher:' + "`n`n`n`n`n" + [string]$RESNames.name))
+                                                    $XmlTempWriter.WriteAttributeString('id', $CellID3+'-1')
+                                                        
+                                                        $XmlTempWriter.WriteStartElement('mxCell')
+                                                        $XmlTempWriter.WriteAttributeString('style', $IconNetworkWatcher)
+                                                        $XmlTempWriter.WriteAttributeString('vertex', "1")
+                                                        $XmlTempWriter.WriteAttributeString('parent', "1")
+
+                                                            $XmlTempWriter.WriteStartElement('mxGeometry')
+                                                            $XmlTempWriter.WriteAttributeString('x', $SubnetLocation)
+                                                            $XmlTempWriter.WriteAttributeString('y', ($Alt0))
+                                                            $XmlTempWriter.WriteAttributeString('width', "65")
+                                                            $XmlTempWriter.WriteAttributeString('height', "65")
+                                                            $XmlTempWriter.WriteAttributeString('as', "geometry")
+                                                            $XmlTempWriter.WriteEndElement()
+
+                                                        $XmlTempWriter.WriteEndElement()
+                                                    
+                                                    $XmlTempWriter.WriteEndElement()                                             
+                                                }                                        
+                                        }
+                        'CDN Profile' {
+                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding CDN Profile: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append
+                                            if($RESNames.count -gt 1)
+                                                {
+                                                    $XmlTempWriter.WriteStartElement('object')            
+                                                    $XmlTempWriter.WriteAttributeString('label', ('CDN Profiles:' + "`n`n`n`n`n" + 'Count: ' + $RESNames.count))
+                                                    $XmlTempWriter.WriteAttributeString('id', $CellID3+'-1')
+                                                        
+                                                        $XmlTempWriter.WriteStartElement('mxCell')
+                                                        $XmlTempWriter.WriteAttributeString('style', $IconCDN)
+                                                        $XmlTempWriter.WriteAttributeString('vertex', "1")
+                                                        $XmlTempWriter.WriteAttributeString('parent', "1")
+
+                                                            $XmlTempWriter.WriteStartElement('mxGeometry')
+                                                            $XmlTempWriter.WriteAttributeString('x', $SubnetLocation)
+                                                            $XmlTempWriter.WriteAttributeString('y', ($Alt0))
+                                                            $XmlTempWriter.WriteAttributeString('width', "65")
+                                                            $XmlTempWriter.WriteAttributeString('height', "52")
+                                                            $XmlTempWriter.WriteAttributeString('as', "geometry")
+                                                            $XmlTempWriter.WriteEndElement()
+
+                                                        $XmlTempWriter.WriteEndElement()
+                                                    
+                                                    $XmlTempWriter.WriteEndElement()                                           
+                                                }
+                                            else
+                                                {
+                                                    $XmlTempWriter.WriteStartElement('object')            
+                                                    $XmlTempWriter.WriteAttributeString('label', ('CDN Profile:' + "`n`n`n`n`n" + [string]$RESNames.name))
+                                                    $XmlTempWriter.WriteAttributeString('id', $CellID3+'-1')
+                                                        
+                                                        $XmlTempWriter.WriteStartElement('mxCell')
+                                                        $XmlTempWriter.WriteAttributeString('style', $IconCDN)
+                                                        $XmlTempWriter.WriteAttributeString('vertex', "1")
+                                                        $XmlTempWriter.WriteAttributeString('parent', "1")
+
+                                                            $XmlTempWriter.WriteStartElement('mxGeometry')
+                                                            $XmlTempWriter.WriteAttributeString('x', $SubnetLocation)
+                                                            $XmlTempWriter.WriteAttributeString('y', ($Alt0))
+                                                            $XmlTempWriter.WriteAttributeString('width', "65")
+                                                            $XmlTempWriter.WriteAttributeString('height', "52")
+                                                            $XmlTempWriter.WriteAttributeString('as', "geometry")
+                                                            $XmlTempWriter.WriteEndElement()
+
+                                                        $XmlTempWriter.WriteEndElement()
+                                                    
+                                                    $XmlTempWriter.WriteEndElement()                                             
+                                                }                                        
+                                        }
+                        'DNS Zone' {
+                                            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding DNS Zone: " + $CellID3+'-1') | Out-File -FilePath $LogFile -Append
+                                            if($RESNames.count -gt 1)
+                                                {
+                                                    $XmlTempWriter.WriteStartElement('object')            
+                                                    $XmlTempWriter.WriteAttributeString('label', ('DNS Zones:' + "`n`n`n`n`n" + 'Count: ' + $RESNames.count))
+                                                    $XmlTempWriter.WriteAttributeString('id', $CellID3+'-1')
+                                                        
+                                                        $XmlTempWriter.WriteStartElement('mxCell')
+                                                        $XmlTempWriter.WriteAttributeString('style', $IconDNSZone)
+                                                        $XmlTempWriter.WriteAttributeString('vertex', "1")
+                                                        $XmlTempWriter.WriteAttributeString('parent', "1")
+
+                                                            $XmlTempWriter.WriteStartElement('mxGeometry')
+                                                            $XmlTempWriter.WriteAttributeString('x', $SubnetLocation)
+                                                            $XmlTempWriter.WriteAttributeString('y', ($Alt0))
+                                                            $XmlTempWriter.WriteAttributeString('width', "64")
+                                                            $XmlTempWriter.WriteAttributeString('height', "64")
+                                                            $XmlTempWriter.WriteAttributeString('as', "geometry")
+                                                            $XmlTempWriter.WriteEndElement()
+
+                                                        $XmlTempWriter.WriteEndElement()
+                                                    
+                                                    $XmlTempWriter.WriteEndElement()                                           
+                                                }
+                                            else
+                                                {
+                                                    $XmlTempWriter.WriteStartElement('object')            
+                                                    $XmlTempWriter.WriteAttributeString('label', ('DNS Zone:' + "`n`n`n`n`n" + [string]$RESNames.name))
+                                                    $XmlTempWriter.WriteAttributeString('id', $CellID3+'-1')
+                                                        
+                                                        $XmlTempWriter.WriteStartElement('mxCell')
+                                                        $XmlTempWriter.WriteAttributeString('style', $IconDNSZone)
+                                                        $XmlTempWriter.WriteAttributeString('vertex', "1")
+                                                        $XmlTempWriter.WriteAttributeString('parent', "1")
+
+                                                            $XmlTempWriter.WriteStartElement('mxGeometry')
+                                                            $XmlTempWriter.WriteAttributeString('x', $SubnetLocation)
+                                                            $XmlTempWriter.WriteAttributeString('y', ($Alt0))
+                                                            $XmlTempWriter.WriteAttributeString('width', "64")
+                                                            $XmlTempWriter.WriteAttributeString('height', "64")
+                                                            $XmlTempWriter.WriteAttributeString('as', "geometry")
+                                                            $XmlTempWriter.WriteEndElement()
+
+                                                        $XmlTempWriter.WriteEndElement()
+                                                    
+                                                    $XmlTempWriter.WriteEndElement()                                             
+                                                }                                        
+                                        }
                     }
-                    if($sub.properties.networkSecurityGroup.id)
-                        {
-                            $NSG = $sub.properties.networkSecurityGroup.id.split('/')[8]
-                            $XmlTempWriter.WriteStartElement('object')            
-                            $XmlTempWriter.WriteAttributeString('label', '')                                        
-                            $XmlTempWriter.WriteAttributeString('Network_Security_Group', [string]$NSG)
-                            $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-2'))
+                } # Closing brace for switch statement
 
-                                ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding NSG: " + $CellID3+'-2') | Out-File -FilePath $LogFile -Append
-                                New-ARIDiagramSubnetIcon $IconNSG ($SubnetLocation+160) ($Alt0+15) "26.35" "32" $ContainerID
+                # Define all known resource types
+                $knownResourceTypes = @(
+                    'Virtual Machine', 'AKS', 'virtualMachineScaleSets', 'loadBalancers', 
+                    'virtualNetworkGateways', 'azureFirewalls', 'privateLinkServices', 
+                    'applicationGateways', 'bastionHosts', 'App Service', 'Function App', 
+                    'DataBricks', 'Open Shift', 'Container Instance', 'NetApp', 
+                    'Data Explorer Clusters', 'Network Interface', 'Managed Identity', 
+                    'Front Door', 'Private DNS Zone', 'Network Watcher', 'CDN Profile', 'DNS Zone'
+                )
+                
+                # Handle blank resource types
+                if ([string]::IsNullOrEmpty($TrueTemp)) 
+                {
+                    $message = "DrawIONetwork - " + (Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - Not Adding ProcType: Blank Resource Type Name"
+                    $message | Out-File -FilePath $LogFile -Append
+                }
+                # Handle resource types not in the known list
+                elseif ($TrueTemp -notin $knownResourceTypes)
+                {
+                    $message = "DrawIONetwork - " + (Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - Not Adding ProcType: $TrueTemp - Missing ResourceType in the list"
+                    $message | Out-File -FilePath $LogFile -Append
+                }
 
-                            $XmlTempWriter.WriteEndElement()  
-                        }
-                    if($sub.properties.routeTable.id)
-                        {
-                            $UDR = $sub.properties.routeTable.id.split('/')[8]
-                            $XmlTempWriter.WriteStartElement('object')            
-                            $XmlTempWriter.WriteAttributeString('label', '')                                        
-                            $XmlTempWriter.WriteAttributeString('Route_Table', [string]$UDR)
-                            $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-3'))
+                if($sub.properties.networkSecurityGroup -and $sub.properties.networkSecurityGroup.id)
+                {
+                    $NSG = $sub.properties.networkSecurityGroup.id.split('/')[8]
+                    $XmlTempWriter.WriteStartElement('object')            
+                    $XmlTempWriter.WriteAttributeString('label', '')                                        
+                    $XmlTempWriter.WriteAttributeString('Network_Security_Group', [string]$NSG)
+                    $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-2'))
 
-                                ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding UDR: " + $CellID3+'-3') | Out-File -FilePath $LogFile -Append
-                                New-ARIDiagramSubnetIcon $IconUDR ($SubnetLocation+15) ($Alt0+15) "30.97" "30" $ContainerID
+                    ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding NSG: " + $CellID3+'-2') | Out-File -FilePath $LogFile -Append
+                    New-ARIDiagramSubnetIcon $IconNSG ($SubnetLocation+160) ($Alt0+15) "26.35" "32" $ContainerID
 
-                            $XmlTempWriter.WriteEndElement()
+                    $XmlTempWriter.WriteEndElement()  
+                }
+                if($sub.properties.routeTable -and $sub.properties.routeTable.id)
+                {
+                    $UDR = $sub.properties.routeTable.id.split('/')[8]
+                    $XmlTempWriter.WriteStartElement('object')            
+                    $XmlTempWriter.WriteAttributeString('label', '')                                        
+                    $XmlTempWriter.WriteAttributeString('Route_Table', [string]$UDR)
+                    $XmlTempWriter.WriteAttributeString('id', ($CellID3+'-3'))
 
-                        }
-                    if($sub.properties.ipconfigurations.id)
-                        {
-                            Foreach($SubIPs in $sub.properties.ipconfigurations)
-                                {
-                                    $Script:VNETPIP += $Script:CleanPIPs | Where-Object {$_.properties.ipConfiguration.id -eq $SubIPs.id}
-                                }
-                        }
+                    ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+" - Adding UDR: " + $CellID3+'-3') | Out-File -FilePath $LogFile -Append
+                    New-ARIDiagramSubnetIcon $IconUDR ($SubnetLocation+15) ($Alt0+15) "30.97" "30" $ContainerID
+
+                    $XmlTempWriter.WriteEndElement()
+
+                }
+                if($sub.properties.ipconfigurations -and $sub.properties.ipconfigurations.id)
+                {
+                    Foreach($SubIPs in $sub.properties.ipconfigurations)
+                    {
+                        $Script:VNETPIP += $Script:CleanPIPs | Where-Object {$_.properties.ipConfiguration.id -eq $SubIPs.id}
+                    }
+                }
             }
 
         ######################################################### ICON #######################################################

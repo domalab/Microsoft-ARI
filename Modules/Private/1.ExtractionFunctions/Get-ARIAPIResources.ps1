@@ -107,17 +107,36 @@ function Get-ARIAPIResources {
 
             #Diagnostic Settings
             $url = ('https://' + $AzURL + '/subscriptions/' + $Sub + '/providers/Microsoft.Quota/usages?api-version=2023-02-01')
-            /subscriptions/55ff7d2d-5550-4674-924c-e141deb33e68/resourceGroups/rg-shd-network-hub-brazilsouth/providers/Microsoft.Network/azureFirewalls/fw-shd-hub-brazilsouth-001
             try {
                 $DiagSet = Invoke-RestMethod -Uri $url -Headers $header -Method GET
             }
             catch {
                 $DiagSet = ""
             }
-
-            $DiagSet.value
             
-            Start-Sleep 1
+            Start-Sleep -Milliseconds 200
+            
+            # Outages
+            $url = ('https://' + $AzURL + '/subscriptions/' + $Sub + '/providers/Microsoft.ResourceHealth/events?api-version=2022-10-01&$filter=properties/eventType eq \'Maintenance\' or properties/eventType eq \'ServiceIssue\'')
+            try {
+                $Outages = Invoke-RestMethod -Uri $url -Headers $header -Method GET
+            }
+            catch {
+                $Outages = ""
+            }
+            
+            Start-Sleep -Milliseconds 200
+            
+            # Support Tickets
+            $url = ('https://' + $AzURL + '/subscriptions/' + $Sub + '/providers/Microsoft.Support/supportTickets?api-version=2020-04-01')
+            try {
+                $SupportTickets = Invoke-RestMethod -Uri $url -Headers $header -Method GET
+            }
+            catch {
+                $SupportTickets = ""
+            }
+            
+            Start-Sleep -Milliseconds 200
 
             $tmp = @{
                 'Subscription'          = $Sub;
@@ -127,7 +146,10 @@ function Get-ARIAPIResources {
                 'ReservationRecomen'    = $ReservationRecon.value;
                 'PolicyAssign'          = $PolicyAssign;
                 'PolicyDef'             = $PolicyDef;
-                'PolicySetDef'          = $PolicySetDef
+                'PolicySetDef'          = $PolicySetDef;
+                'DiagnosticSettings'    = $DiagSet.value;
+                'Outages'               = $Outages.value;
+                'SupportTickets'        = $SupportTickets.value
             }
             $APIResults += $tmp
 

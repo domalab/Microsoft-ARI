@@ -1,3 +1,7 @@
 DrawIOCoreJob - 2025-03-16_12_18_15 - Starting Draw.IO Job
 DrawIOCoreJob - 2025-03-16_12_18_15 - Cannot bind argument to parameter 'Path' because it is null.
 DrawIOCoreJob - 2025-03-16_12_18_15 - Draw.IO Ended.
+DrawIOCoreJob - 2025-03-19_11_08_53 - Starting Draw.IO Job
+DrawIOCoreJob - 2025-03-19_11_08_53 - Calling Draw.IO Thread
+DrawIOCoreJob - 2025-03-19_11_08_53 - Cannot start job. The language mode for this session is incompatible with the system-wide language mode.
+DrawIOCoreJob - 2025-03-19_11_08_53 - Draw.IO Ended.
