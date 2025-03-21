@@ -1,8 +1,7 @@
 Function Build-ARIDiagramSubnet {
     Param($SubnetLocation,$VNET,$IDNum,$DiagramCache,$ContainerID,$LogFile)
 
-    try
-        {
+    try {
         $etag = -join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})
         $DiagID = -join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})
         $CellID2 = -join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})
@@ -1591,9 +1590,9 @@ Function Build-ARIDiagramSubnet {
             $XmlTempWriter.WriteEndDocument()
             $XmlTempWriter.Flush()
             $XmlTempWriter.Close() 
-        }
-        catch
-        {
-            ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $LogFile -Append 
-        }
+    }
+    catch
+    {
+        ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $LogFile -Append 
+    }
 }

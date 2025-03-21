@@ -1651,7 +1651,7 @@ Function Start-ARIDiagramNetwork {
 
                     ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - End of Network Diagram') | Out-File -FilePath $LogFile -Append 
             }
-        catch
+            catch 
             {
                 ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $LogFile -Append 
             }
@@ -1979,3 +1979,9 @@ Function Start-ARIDiagramNetwork {
                 {
                     ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - WARNING: No Azure Virtual Network Gateway found') | Out-File -FilePath $LogFile -Append
                 }
+            }
+            catch 
+            {
+                ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $LogFile -Append
+            }
+}

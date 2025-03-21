@@ -117,7 +117,7 @@ function Get-ARIAPIResources {
             Start-Sleep -Milliseconds 200
             
             # Outages
-            $url = ('https://' + $AzURL + '/subscriptions/' + $Sub + '/providers/Microsoft.ResourceHealth/events?api-version=2022-10-01&$filter=properties/eventType eq \'Maintenance\' or properties/eventType eq \'ServiceIssue\'')
+            $url = ('https://' + $AzURL + '/subscriptions/' + $Sub + '/providers/Microsoft.ResourceHealth/events?api-version=2022-10-01&$filter=properties/eventType eq ''Maintenance'' or properties/eventType eq ''ServiceIssue''')
             try {
                 $Outages = Invoke-RestMethod -Uri $url -Headers $header -Method GET
             }
