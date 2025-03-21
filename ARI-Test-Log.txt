@@ -1,0 +1,8 @@
+ARI Test Log - 03/21/2025 12:24:12
+Set-ExcelRange: C:\Users\rdeysel2\OneDrive - DXC Production\Documents\PowerShell\Modules\ImportExcel\7.8.10\Public\Export-Excel.ps1:661
+Line |
+ 661 |              Set-ExcelRange -Worksheet $ws @s
+     |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | The property 'HorizontalAlignment' cannot be found on this object. Verify that the property exists and can be
+     | set.
+

@@ -1438,7 +1438,7 @@ Function Build-ARIDiagramSubnet {
                         $Script:VNETPIP += $Script:CleanPIPs | Where-Object {$_.properties.ipConfiguration.id -eq $SubIPs.id}
                     }
                 }
-            }
+            } # This is the end of the Set-ARIDiagramSubnetComponent function
 
         ######################################################### ICON #######################################################
 
@@ -1591,8 +1591,10 @@ Function Build-ARIDiagramSubnet {
             $XmlTempWriter.Flush()
             $XmlTempWriter.Close() 
     }
-    catch
-    {
+    catch {
         ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Error: ' + $_.Exception.Message) | Out-File -FilePath $LogFile -Append 
+    }
+    finally {
+        # Add any necessary cleanup code here
     }
 }
