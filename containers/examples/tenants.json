@@ -1,0 +1,53 @@
+[
+  {
+    "name": "Production Environment",
+    "tenantId": "12345678-1234-1234-1234-123456789012",
+    "subscriptionId": "prod-sub-1234-5678-9012-345678901234",
+    "reportName": "Production-Inventory",
+    "description": "Production tenant with all subscriptions",
+    "includeTags": true,
+    "securityCenter": true,
+    "skipAdvisory": false
+  },
+  {
+    "name": "Development Environment", 
+    "tenantId": "87654321-4321-4321-4321-210987654321",
+    "subscriptionId": "dev-sub-8765-4321-0987-654321098765",
+    "reportName": "Development-Inventory",
+    "description": "Development tenant for testing",
+    "includeTags": false,
+    "securityCenter": false,
+    "skipAdvisory": true
+  },
+  {
+    "name": "Staging Environment",
+    "tenantId": "11111111-2222-3333-4444-555555555555",
+    "reportName": "Staging-Inventory",
+    "description": "Staging tenant - all subscriptions",
+    "includeTags": true,
+    "securityCenter": true,
+    "skipAdvisory": false
+  },
+  {
+    "name": "Customer A Tenant",
+    "tenantId": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "subscriptionId": "customer-a-sub-1111-2222-3333-444444444444",
+    "reportName": "CustomerA-Inventory",
+    "description": "Dedicated tenant for Customer A",
+    "includeTags": true,
+    "securityCenter": true,
+    "skipAdvisory": false,
+    "resourceGroup": "CustomerA-Production"
+  },
+  {
+    "name": "DR Environment",
+    "tenantId": "99999999-8888-7777-6666-555555555555",
+    "subscriptionId": "dr-sub-9999-8888-7777-666666666666",
+    "reportName": "DR-Inventory",
+    "description": "Disaster Recovery environment",
+    "includeTags": false,
+    "securityCenter": true,
+    "skipAdvisory": true,
+    "lite": true
+  }
+]

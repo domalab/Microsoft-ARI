@@ -26,6 +26,31 @@ To contribute to the codebase, you'll need:
 
 ### Setting Up Your Development Environment
 
+#### Option 1: Using DevContainers (Recommended)
+
+The fastest way to get started is using DevContainers, which provides a consistent development environment with all dependencies pre-installed:
+
+1. Fork the repository on GitHub
+2. Clone your fork to your local machine:
+   ```
+   git clone https://github.com/your-username/ARI.git
+   ```
+3. Open the project in Visual Studio Code
+4. When prompted, click "Reopen in Container" or press `Ctrl+Shift+P` and select "Dev Containers: Reopen in Container"
+5. Wait for the container to build (first time only, ~5-10 minutes)
+6. The environment will automatically validate and be ready for development
+
+The DevContainer includes:
+- PowerShell 7.4
+- All required PowerShell modules (Az.*, ImportExcel, etc.)
+- Azure CLI
+- Git and development tools
+- VS Code extensions for PowerShell and Azure development
+
+#### Option 2: Local Development Setup
+
+If you prefer to set up your local environment manually:
+
 1. Fork the repository on GitHub
 2. Clone your fork to your local machine:
    ```
@@ -35,10 +60,24 @@ To contribute to the codebase, you'll need:
    ```
    git remote add upstream https://github.com/microsoft/ARI.git
    ```
-4. Create a new branch for your changes:
+4. Install required PowerShell modules:
+   ```powershell
+   Install-Module -Name ImportExcel, Az.Accounts, Az.ResourceGraph, Az.Storage, Az.Compute, Az.CostManagement -Force
+   ```
+5. Create a new branch for your changes:
    ```
    git checkout -b my-feature-branch
    ```
+
+#### Validating Your Environment
+
+Regardless of which setup method you choose, you can validate your environment by running:
+
+```powershell
+./scripts/validate-environment.ps1
+```
+
+This script will check that all required components are properly installed and configured.
 
 ## Development Guidelines
 

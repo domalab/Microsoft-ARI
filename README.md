@@ -64,15 +64,32 @@ Azure Resource Inventory (ARI) is a comprehensive PowerShell module that generat
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### Option 1: DevContainer Development (Recommended)
+
+For development and testing, use our DevContainer for a consistent environment:
+
+1. **Prerequisites**: Docker Desktop, VS Code, and Dev Containers extension
+2. **Clone and Open**: 
+   ```bash
+   git clone https://github.com/microsoft/ARI.git
+   code ARI
+   ```
+3. **Reopen in Container**: Click "Reopen in Container" when prompted
+4. **Start Developing**: All dependencies are pre-installed and ready to use
+
+The DevContainer includes PowerShell 7.4, all required modules, Azure CLI, and development tools.
+
+### Option 2: Production Use
+
+For production use, install the module directly from PowerShell Gallery:
+
+#### Prerequisites
 
 - PowerShell 7.0+ (recommended) or PowerShell 5.1
 - Azure Account with read access to resources you want to inventory
 - Administrator privileges during script execution (for module installation)
 
-### Installation
-
-Install the module directly from PowerShell Gallery:
+#### Installation
 
 ```powershell
 Install-Module -Name AzureResourceInventory
@@ -82,8 +99,7 @@ Install-Module -Name AzureResourceInventory
   <img src="images/InstallARI.gif" width="700">
 </p>
 
-
-### Quick Start
+#### Quick Start
 
 To generate a basic inventory report:
 
@@ -94,7 +110,6 @@ Import-Module AzureResourceInventory
 <p align="center">
   <img src="images/ImportingARI.gif" width="700">
 </p>
-
 
 ```powershell
 Invoke-ARI

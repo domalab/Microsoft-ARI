@@ -1,0 +1,176 @@
+# Azure Resource Inventory - Docker Compose Configuration
+# Provides advanced configuration options for enterprise deployments
+
+version: '3.8'
+
+services:
+  # Main ARI service for interactive usage
+  ari:
+    build:
+      context: ..
+      dockerfile: containers/runtime/Dockerfile
+      args:
+        ARI_VERSION: ${ARI_VERSION:-latest}
+        BUILD_DATE: ${BUILD_DATE}
+        VCS_REF: ${VCS_REF}
+    image: ari:${ARI_VERSION:-latest}
+    container_name: ari-main
+    volumes:
+      # Output directory
+      - ${ARI_OUTPUT_PATH:-./output}:/ari-output
+      # Optional: Mount Azure configuration
+      - ${AZURE_CONFIG_PATH:-/dev/null}:/home/ariuser/.azure:ro
+    environment:
+      # Azure authentication (service principal)
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID:-}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET:-}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID:-}
+      # ARI configuration
+      - ARI_TENANT_ID=${ARI_TENANT_ID:-}
+      - ARI_SUBSCRIPTION_ID=${ARI_SUBSCRIPTION_ID:-}
+      - ARI_RESOURCE_GROUP=${ARI_RESOURCE_GROUP:-}
+      - ARI_INCLUDE_TAGS=${ARI_INCLUDE_TAGS:-false}
+      - ARI_SECURITY_CENTER=${ARI_SECURITY_CENTER:-false}
+      - ARI_SKIP_ADVISORY=${ARI_SKIP_ADVISORY:-false}
+      - ARI_REPORT_NAME=${ARI_REPORT_NAME:-}
+      - ARI_LITE=${ARI_LITE:-false}
+    stdin_open: true
+    tty: true
+    profiles:
+      - interactive
+
+  # Service for automated/scheduled runs
+  ari-automated:
+    build:
+      context: ..
+      dockerfile: containers/runtime/Dockerfile
+      args:
+        ARI_VERSION: ${ARI_VERSION:-latest}
+    image: ari:${ARI_VERSION:-latest}
+    container_name: ari-automated
+    volumes:
+      - ${ARI_OUTPUT_PATH:-./output}:/ari-output
+      - ${AZURE_CONFIG_PATH:-/dev/null}:/home/ariuser/.azure:ro
+    environment:
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+    command: >
+      pwsh -c "
+      Import-Module /opt/ari/AzureResourceInventory.psm1;
+      Invoke-ARI 
+      -TenantID '${ARI_TENANT_ID}'
+      $(if [ '${ARI_SUBSCRIPTION_ID}' != '' ]; then echo '-SubscriptionID ${ARI_SUBSCRIPTION_ID}'; fi)
+      $(if [ '${ARI_RESOURCE_GROUP}' != '' ]; then echo '-ResourceGroup ${ARI_RESOURCE_GROUP}'; fi)
+      $(if [ '${ARI_INCLUDE_TAGS}' = 'true' ]; then echo '-IncludeTags'; fi)
+      $(if [ '${ARI_SECURITY_CENTER}' = 'true' ]; then echo '-SecurityCenter'; fi)
+      $(if [ '${ARI_SKIP_ADVISORY}' = 'true' ]; then echo '-SkipAdvisory'; fi)
+      $(if [ '${ARI_REPORT_NAME}' != '' ]; then echo '-ReportName ${ARI_REPORT_NAME}'; fi)
+      $(if [ '${ARI_LITE}' = 'true' ]; then echo '-Lite'; fi)
+      "
+    profiles:
+      - automation
+
+  # Development service with full access
+  ari-dev:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    image: ari-dev:${ARI_VERSION:-latest}
+    container_name: ari-development
+    volumes:
+      - ..:/workspace
+      - ${ARI_OUTPUT_PATH:-./output}:/ari-output
+      - ${AZURE_CONFIG_PATH:-/dev/null}:/home/vscode/.azure:ro
+    environment:
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID:-}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET:-}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID:-}
+    stdin_open: true
+    tty: true
+    command: pwsh
+    profiles:
+      - development
+
+  # Service for CI/CD pipelines
+  ari-ci:
+    build:
+      context: ..
+      dockerfile: containers/runtime/Dockerfile
+      args:
+        ARI_VERSION: ${ARI_VERSION:-latest}
+    image: ari:${ARI_VERSION:-latest}
+    container_name: ari-ci
+    volumes:
+      - ${ARI_OUTPUT_PATH:-./output}:/ari-output
+    environment:
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+      - CI=true
+    command: >
+      pwsh -c "
+      Write-Host 'Starting ARI in CI mode...' -ForegroundColor Green;
+      Import-Module /opt/ari/AzureResourceInventory.psm1;
+      \$$params = @{
+        TenantID = '${ARI_TENANT_ID}'
+      };
+      if ('${ARI_SUBSCRIPTION_ID}' -ne '') { \$$params.SubscriptionID = '${ARI_SUBSCRIPTION_ID}' };
+      if ('${ARI_RESOURCE_GROUP}' -ne '') { \$$params.ResourceGroup = '${ARI_RESOURCE_GROUP}' };
+      if ('${ARI_INCLUDE_TAGS}' -eq 'true') { \$$params.IncludeTags = \$$true };
+      if ('${ARI_SECURITY_CENTER}' -eq 'true') { \$$params.SecurityCenter = \$$true };
+      if ('${ARI_SKIP_ADVISORY}' -eq 'true') { \$$params.SkipAdvisory = \$$true };
+      if ('${ARI_REPORT_NAME}' -ne '') { \$$params.ReportName = '${ARI_REPORT_NAME}' };
+      if ('${ARI_LITE}' -eq 'true') { \$$params.Lite = \$$true };
+      Invoke-ARI @params;
+      Write-Host 'ARI execution completed in CI mode' -ForegroundColor Green
+      "
+    profiles:
+      - ci
+
+  # Multi-tenant service for bulk operations
+  ari-multitenant:
+    build:
+      context: ..
+      dockerfile: containers/runtime/Dockerfile
+      args:
+        ARI_VERSION: ${ARI_VERSION:-latest}
+    image: ari:${ARI_VERSION:-latest}
+    volumes:
+      - ${ARI_OUTPUT_PATH:-./output}:/ari-output
+      - ${ARI_TENANTS_CONFIG:-./tenants.json}:/opt/tenants.json:ro
+    environment:
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+    command: >
+      pwsh -c "
+      Write-Host 'Starting multi-tenant ARI execution...' -ForegroundColor Green;
+      Import-Module /opt/ari/AzureResourceInventory.psm1;
+      if (Test-Path '/opt/tenants.json') {
+        \$$tenants = Get-Content '/opt/tenants.json' | ConvertFrom-Json;
+        foreach (\$$tenant in \$$tenants) {
+          Write-Host \"Processing tenant: \$$(\$$tenant.name)\" -ForegroundColor Cyan;
+          \$$params = @{ TenantID = \$$tenant.tenantId };
+          if (\$$tenant.subscriptionId) { \$$params.SubscriptionID = \$$tenant.subscriptionId };
+          if (\$$tenant.reportName) { \$$params.ReportName = \$$tenant.reportName };
+          Invoke-ARI @params;
+        }
+      } else {
+        Write-Host 'No tenants configuration found at /opt/tenants.json' -ForegroundColor Yellow;
+      }
+      "
+    profiles:
+      - multitenant
+
+# Named volumes for persistent storage
+volumes:
+  ari_output:
+    driver: local
+  azure_config:
+    driver: local
+
+# Networks for isolation
+networks:
+  ari_network:
+    driver: bridge
